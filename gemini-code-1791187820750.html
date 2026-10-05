@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interactif - Dilemmes Éthiques & IA</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --correct: #10b981;
+            --incorrect: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 650px;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .quiz-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-number {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option-btn {
+            background-color: #fff;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #f0fdf4;
+        }
+
+        .option-btn.selected {
+            border-color: var(--primary);
+            background-color: #eef2ff;
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct);
+            background-color: #ecfdf5;
+            color: #065f46;
+            font-weight: 600;
+        }
+
+        .option-btn.incorrect {
+            border-color: var(--incorrect);
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+
+        .btn-next {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-next:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-next:disabled {
+            background-color: var(--border);
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            text-align: center;
+            display: none;
+        }
+
+        .score-display {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        .restart-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-screen">
+        <div class="header">
+            <h1 class="quiz-title">Éthique & Intelligence Artificielle</h1>
+            <span id="score-tracker" style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Score: 0</span>
+        </div>
+
+        <div class="progress-bar-bg">
+            <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+
+        <div id="question-number" class="question-number">Question 1 sur 26</div>
+        <div id="question-text" class="question-text">Chargement...</div>
+
+        <div id="options-container" class="options-container"></div>
+
+        <button id="next-btn" class="btn-next" onclick="nextQuestion()" disabled>Valider la réponse</button>
+    </div>
+
+    <div id="result-screen" class="result-container">
+        <h2>Quiz Terminé !</h2>
+        <p>Voici ton résultat final :</p>
+        <div id="final-score" class="score-display">0 / 26</div>
+        <p id="feedback-message" style="color: var(--text-muted); margin-bottom: 24px;"></p>
+        <button class="restart-btn" onclick="restartQuiz()">Recommencer le quiz</button>
+    </div>
+</div>
+
+<script>
+    // Liste des questions avec leurs options (le script mélange les options automatiquement)
+    const questions = [
+        {
+            question: "Un algorithme de recrutement rejette systématiquement plus de candidatures féminines à compétences égales. Quel problème éthique cela illustre-t-il ?",
+            options: [
+                { text: "Un biais algorithmique issu des données historiques d'entraînement.", correct: true },
+                { text: "Une défaillance purement technique du processeur du serveur.", correct: false },
+                { text: "Une tentative volontaire de piratage informatique par un tiers.", correct: false }
+            ]
+        },
+        {
+            question: "Un véhicule autonome doit choisir entre freiner brusquement au risque de blesser son passager ou dévier au risque de frapper un piéton. Quel est le nom classique de ce dilemme ?",
+            options: [
+                { text: "Le dilemme du tramway (Trolley Problem).", correct: true },
+                { text: "Le paradoxe du menteur.", correct: false },
+                { text: "La conjecture de Collatz.", correct: false }
+            ]
+        },
+        {
+            question: "Un outil de génération d'images produit des œuvres à partir de millions de dessins trouvés sur Internet sans l'accord des artistes originaux. Quel droit est principalement remis en question ?",
+            options: [
+                { text: "Le droit d'auteur et la propriété intellectuelle.", correct: true },
+                { text: "Le droit à l'oubli numérique.", correct: false },
+                { text: "Le droit du travail régissant le salariat.", correct: false }
+            ]
+        },
+        {
+            question: "Qu'est-ce qu'une 'hallucination' dans le contexte d'un grand modèle de langage (LLM) comme ChatGPT ?",
+            options: [
+                { text: "Une réponse générée qui paraît crédible mais qui est factuellement fausse.", correct: true },
+                { text: "Un bug graphique affichant des couleurs anormales sur l'écran.", correct: false },
+                { text: "Une infection de l'ordinateur par un virus informatique spécialisé.", correct: false }
+            ]
+        },
+        {
+            question: "Pourquoi l'utilisation massive des serveurs d'IA pose-t-elle une question environnementale ?",
+            options: [
+                { text: "Ils nécessitent une quantité gigantesque d'électricité et d'eau pour le refroidissement.", correct: true },
+                { text: "Ils émettent directement des rayonnements toxiques dans l'atmosphère.", correct: false },
+                { text: "Ils détruisent physiquement les composants informatiques tous les mois.", correct: false }
+            ]
+        },
+        {
+            question: "Qu'est-ce qu'un 'Deepfake' ?",
+            options: [
+                { text: "Une vidéo ou un son synthétique hyperréaliste modifiant le visage ou la voix d'une personne.", correct: true },
+                { text: "Un mot de passe extrêmement complexe généré automatiquement.", correct: false },
+                { text: "Une panne générale du réseau Internet mondial.", correct: false }
+            ]
+        },
+        {
+            question: "En Europe, quelle réglementation vise à encadrer le développement et l'usage de l'IA selon le niveau de risque ?",
+            options: [
+                { text: "L'IA Act (Règlement sur l'intelligence artificielle).", correct: true },
+                { text: "Le traité de Rome.", correct: false },
+                { text: "La norme ISO 9001.", correct: false }
+            ]
+        },
+        {
+            question: "Dans le domaine de la santé, que signifie la notion d'IA explicable (XAI) ?",
+            options: [
+                { text: "La capacité de l'IA à expliquer les raisons médicales ayant conduit à son diagnostic.", correct: true },
+                { text: "La traduction automatique des prescriptions médicales dans toutes les langues.", correct: false },
+                { text: "L'apprentissage obligatoire du code informatique par les médecins.", correct: false }
+            ]
+        },
+        {
+            question: "Quel principe éthique exige qu'un humain garde le contrôle final sur une décision prise par une IA ?",
+            options: [
+                { text: "La supervision humaine (Human-in-the-loop).", correct: true },
+                { text: "L'automatisation intégrale.", correct: false },
+                { text: "L'alignement des réseaux de neurones.", correct: false }
+            ]
+        },
+        {
+            question: "Pourquoi est-il risqué de partager des données personnelles ou des secrets d'entreprise dans un outil d'IA public ?",
+            options: [
+                { text: "Les données saisies peuvent être utilisées pour entraîner les futurs modèles de l'entreprise.", correct: true },
+                { text: "Cela supprime automatiquement le fichier d'origine de votre ordinateur.", correct: false },
+                { text: "L'outil bloque définitivement le compte de l'utilisateur.", correct: false }
+            ]
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let selectedOptionIndex = null;
+    let currentShuffledOptions = [];
+
+    const questionTextEl = document.getElementById("question-text");
+    const optionsContainerEl = document.getElementById("options-container");
+    const questionNumberEl = document.getElementById("question-number");
+    const scoreTrackerEl = document.getElementById("score-tracker");
+    const progressBarEl = document.getElementById("progress-bar");
+    const nextBtn = document.getElementById("next-btn");
+
+    // Algorithme de mélange de Fisher-Yates
+    function shuffleArray(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function loadQuestion() {
+        selectedOptionIndex = null;
+        nextBtn.disabled = true;
+        nextBtn.textContent = "Valider la réponse";
+
+        const currentQ = questions[currentQuestionIndex];
+        
+        // Mélanger les réponses pour cette question spécifique
+        currentShuffledOptions = shuffleArray(currentQ.options);
+
+        questionNumberEl.textContent = `Question ${currentQuestionIndex + 1} sur ${questions.length}`;
+        questionTextEl.textContent = currentQ.question;
+        
+        const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
+        progressBarEl.style.width = `${progressPercent}%`;
+
+        optionsContainerEl.innerHTML = "";
+
+        currentShuffledOptions.forEach((option, index) => {
+            const button = document.createElement("button");
+            button.className = "option-btn";
+            button.textContent = option.text;
+            button.onclick = () => selectOption(index);
+            optionsContainerEl.appendChild(button);
+        });
+    }
+
+    function selectOption(index) {
+        if (nextBtn.textContent === "Question suivante") return;
+
+        selectedOptionIndex = index;
+        const buttons = optionsContainerEl.getElementsByClassName("option-btn");
+        
+        for (let i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove("selected");
+        }
+        buttons[index].classList.add("selected");
+        nextBtn.disabled = false;
+    }
+
+    function nextQuestion() {
+        const buttons = optionsContainerEl.getElementsByClassName("option-btn");
+
+        if (nextBtn.textContent === "Valider la réponse") {
+            const isCorrect = currentShuffledOptions[selectedOptionIndex].correct;
+
+            if (isCorrect) {
+                score++;
+                scoreTrackerEl.textContent = `Score: ${score}`;
+                buttons[selectedOptionIndex].classList.add("correct");
+            } else {
+                buttons[selectedOptionIndex].classList.add("incorrect");
+                // Montrer quelle était la bonne réponse
+                currentShuffledOptions.forEach((opt, idx) => {
+                    if (opt.correct) {
+                        buttons[idx].classList.add("correct");
+                    }
+                });
+            }
+
+            // Désactiver tous les boutons après validation
+            for (let btn of buttons) {
+                btn.disabled = true;
+            }
+
+            if (currentQuestionIndex < questions.length - 1) {
+                nextBtn.textContent = "Question suivante";
+            } else {
+                nextBtn.textContent = "Voir le résultat final";
+            }
+        } else {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+    }
+
+    function showResults() {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        document.getElementById("final-score").textContent = `${score} / ${questions.length}`;
+
+        const percentage = (score / questions.length) * 100;
+        const feedbackEl = document.getElementById("feedback-message");
+
+        if (percentage >= 80) {
+            feedbackEl.textContent = "Excellent ! Tu maîtrises très bien les enjeux éthiques de l'IA.";
+        } else if (percentage >= 50) {
+            feedbackEl.textContent = "Bon travail ! Tes connaissances de base sont solides.";
+        } else {
+            feedbackEl.textContent = "N'hésite pas à relire le cours et à retenter le quiz !";
+        }
+    }
+
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        scoreTrackerEl.textContent = `Score: 0`;
+        document.getElementById("quiz-screen").style.display = "block";
+        document.getElementById("result-screen").style.display = "none";
+        loadQuestion();
+    }
+
+    // Lancement au chargement de la page
+    loadQuestion();
+</script>
+
+</body>
+</html>
